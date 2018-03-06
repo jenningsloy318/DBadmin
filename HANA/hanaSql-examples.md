@@ -1,36 +1,36 @@
 **HANA SQL Statements**
 
 1. user management
-```
-ALTER USER USER1 PASSWORD Mpasswd1;
-ALTER USER USER1 DISABLE PASSWORD LIFETIME;
-ALTER USER USER1 ACTIVATE USER NOW;
-ALTER USER USER1 DEACTIVATE USER NOW;
-
-SELECT  * FROM SYS.USERS WHERE USER_NAME='ADMIN01';
-SELECT  * FROM SYS.PRIVILEGES  ORDER BY NAME;
-SELECT  * FROM SYS.ROLES ORDER by ROLE_NAME;
-
-list privileges belong to a user: 
-SELECT * FROM "PUBLIC"."EFFECTIVE_PRIVILEGES" where USER_NAME = 'ADMIN01';
-
-List roles assigned to a user:
-
-SELECT * FROM "PUBLIC"."EFFECTIVE_ROLES" where USER_NAME = 'ADMIN01';
-```
+    ```
+    ALTER USER USER1 PASSWORD Mpasswd1;
+    ALTER USER USER1 DISABLE PASSWORD LIFETIME;
+    ALTER USER USER1 ACTIVATE USER NOW;
+    ALTER USER USER1 DEACTIVATE USER NOW;
+    
+    SELECT  * FROM SYS.USERS WHERE USER_NAME='ADMIN01';
+    SELECT  * FROM SYS.PRIVILEGES  ORDER BY NAME;
+    SELECT  * FROM SYS.ROLES ORDER by ROLE_NAME;
+    
+    list privileges belong to a user: 
+    SELECT * FROM "PUBLIC"."EFFECTIVE_PRIVILEGES" where USER_NAME = 'ADMIN01';
+    
+    List roles assigned to a user:
+    
+    SELECT * FROM "PUBLIC"."EFFECTIVE_ROLES" where USER_NAME = 'ADMIN01';
+    ```
 
 2. show current connections
-```
-SELECT * FROM "SYS"."M_CONNECTIONS";
-```
+    ```
+    SELECT * FROM "SYS"."M_CONNECTIONS";
+    ```
 
 3. MDC sqls
-```
-start tenant db: alter system start database dbname
-stop tenant db: alter system stop database dbname
-show all tenant db: select * from sys.m_databases
-show all services(including systemdb and tenant db): select * from sys_databases.m_services
-```
+    ```
+    start tenant db: alter system start database dbname
+    stop tenant db: alter system stop database dbname
+    show all tenant db: select * from sys.m_databases
+    show all services(including systemdb and tenant db): select * from sys_databases.m_services
+    ```
 4. change configuration
 
     Properties can be configured at different levels or layers depending on the configuration file.
@@ -60,11 +60,11 @@ show all services(including systemdb and tenant db): select * from sys_databases
     ```
 
 5. export and import sql
-```
-EXPORT <myschema>."*" AS BINARY INTO '/tmp/dump' WITH REPLACE THREADS 10;
+    ```
+    EXPORT <myschema>."*" AS BINARY INTO '/tmp/dump' WITH REPLACE THREADS 10;
 
-IMPORT ALL FROM '/tmp/dump' WITH REPLACE THREADS 10;
-```
+    IMPORT ALL FROM '/tmp/dump' WITH REPLACE THREADS 10;
+    ```
 
 6. To grant/revoke privileges to a user 
     6.1 to grant/revoke **system privileges**
