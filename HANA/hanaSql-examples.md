@@ -66,27 +66,32 @@ EXPORT <myschema>."*" AS BINARY INTO '/tmp/dump' WITH REPLACE THREADS 10;
 IMPORT ALL FROM '/tmp/dump' WITH REPLACE THREADS 10;
 ```
 
-6. To grant privileges to a user 
-    6.1 to grant **system privileges**
+6. To grant/revoke privileges to a user 
+    6.1 to grant/revoke **system privileges**
     ```
     grant RESOURCE ADMIN TO USER1;
+    revoke RESOURCE ADMIN FROM USER1;
     ```
 
-    6.2 to grant **object privileges**
+    6.2 to grant/revoke **object privileges**
     ```
     grant EXECUTE,DELETE,INSERT ON SCHEMA _SYS_REPO TO USER1;
     GRANT EXECUTE ON GRANT_SCHEMA_PRIVILEGE_ON_ACTIVATED_CONTENT TO USER1; 
+
+    revoke EXECUTE,DELETE,INSERT ON SCHEMA _SYS_REPO FROM USER1
     ```
 
-    6.3 to grant **system roles**
+    6.3 to grant/revoke **system roles**
     ```
     grant CONTENT_ADMIN to USER1;
+    revoke CONTENT_ADMIN FROM USER1
     ```
 
-    6.4 to grant **repository roles**
+    6.4 to grant/revoke **repository roles**
 
     ```
-    call _SYS_REPO.GRANT_ACTIVATED_ROLE ('sap.hana.ide.roles::Developer', 'SPORTSONE');
+    call _SYS_REPO.GRANT_ACTIVATED_ROLE('sap.hana.ide.roles::Developer', 'USER1');
+    call _SYS_REPO.REVOKE_ACTIVATED_ROLE('sap.hana.ide.roles::Developer', 'USER1');
     ```
 
 
