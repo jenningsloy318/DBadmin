@@ -6,16 +6,16 @@
     ALTER USER USER1 DISABLE PASSWORD LIFETIME;
     ALTER USER USER1 ACTIVATE USER NOW;
     ALTER USER USER1 DEACTIVATE USER NOW;
-    
+
     SELECT  * FROM SYS.USERS WHERE USER_NAME='ADMIN01';
     SELECT  * FROM SYS.PRIVILEGES  ORDER BY NAME;
     SELECT  * FROM SYS.ROLES ORDER by ROLE_NAME;
-    
+
     list privileges belong to a user: 
     SELECT * FROM "PUBLIC"."EFFECTIVE_PRIVILEGES" where USER_NAME = 'ADMIN01';
-    
+
     List roles assigned to a user:
-    
+
     SELECT * FROM "PUBLIC"."EFFECTIVE_ROLES" where USER_NAME = 'ADMIN01';
     ```
 
@@ -93,8 +93,24 @@
     call _SYS_REPO.GRANT_ACTIVATED_ROLE('sap.hana.ide.roles::Developer', 'USER1');
     call _SYS_REPO.REVOKE_ACTIVATED_ROLE('sap.hana.ide.roles::Developer', 'USER1');
     ```
+7. backup data 
 
+    7.1 login as <sid>adm, and create `user store` with hdbuserstore
+    ```
+    /usr/sap/<sid>/HDB<instancenumber>/exe/hdbuserstore SET<key_name> <server>:<port><DB_user_name> <DB_user_password>
+    ```
 
+    7.2 create backup sql 
+    ```
+    cat backup.sql
+    BACKUP DATA ALL USING FILE('/backup/<sid>/data/backup_<sid>_`dte +%Y%m%d%H%M%S`');
+    ``` 
+
+    7.2 login as  <sid>adm, back up the user
+    
+    ```
+    /usr/sap/SP2/HDB03/exe/hdbsql -c \; -U BACKUPFORSP2 -I /tmp/backup_sql.88Y -o /usr/sap/SP2/HDB03/cnctul603338/trace/backup_log_Mon.txt
+    ```
 
 **Appendix:**
 
