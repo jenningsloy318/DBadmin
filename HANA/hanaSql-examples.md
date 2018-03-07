@@ -103,14 +103,14 @@
     7.3 login as  <sid>adm, make full backup
     
     ```
-    /usr/sap/SP2/HDB03/exe/hdbsql -U BACKUPFORSP2 "BACKUP DATA ALL USING FILE(/backup/<sid>/data/backup_<sid>_$DATE')"
+    /usr/sap/SP2/HDB03/exe/hdbsql -U BACKUPFORSP2 "BACKUP DATA ALL USING FILE('/backup/<sid>/data/backup_<sid>_$DATE')"
     ```
 
     7.4 incremental/Differential backup 
 
     ```
-    hdbsql -U BACKUPFORSP2 "backup data INCREMENTAL using backint('backup_prefix')"
-    hdbsql -U BACKUPFORSP2 "backup data DIFFERENTIAL using backint('backup_prefix')"
+    hdbsql -U BACKUPFORSP2 "backup data INCREMENTAL using FILE('/backup/<sid>/data/backup_<sid>_$DATE')"
+    hdbsql -U BACKUPFORSP2 "backup data DIFFERENTIAL using FILE('/backup/<sid>/data/backup_<sid>_$DATE')"
 
     ```
 **Appendix:**
