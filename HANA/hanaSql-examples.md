@@ -97,21 +97,22 @@
 
     7.1 login as <sid>adm, and create `user store` with hdbuserstore
     ```
-    /usr/sap/<sid>/HDB<instancenumber>/exe/hdbuserstore SET<key_name> <server>:<port><DB_user_name> <DB_user_password>
+    /usr/sap/<sid>/HDB<instancenumber>/exe/hdbuserstore SET <key_name> <server>:<port><DB_user_name> <DB_user_password>
     ```
 
-    7.2 create backup sql 
-    ```
-    cat backup.sql
-    BACKUP DATA ALL USING FILE('/backup/<sid>/data/backup_<sid>_`dte +%Y%m%d%H%M%S`');
-    ``` 
-
-    7.2 login as  <sid>adm, back up the user
+    7.3 login as  <sid>adm, make full backup
     
     ```
-    /usr/sap/SP2/HDB03/exe/hdbsql -c \; -U BACKUPFORSP2 -I /tmp/backup_sql.88Y -o /usr/sap/SP2/HDB03/cnctul603338/trace/backup_log_Mon.txt
+    /usr/sap/SP2/HDB03/exe/hdbsql -U BACKUPFORSP2 "BACKUP DATA ALL USING FILE(/backup/<sid>/data/backup_<sid>_$DATE')"
     ```
 
+    7.4 incremental/Differential backup 
+
+    ```
+    hdbsql -U BACKUPFORSP2 "backup data INCREMENTAL using backint('backup_prefix')"
+    hdbsql -U BACKUPFORSP2 "backup data DIFFERENTIAL using backint('backup_prefix')"
+
+    ```
 **Appendix:**
 
 1. Regex
