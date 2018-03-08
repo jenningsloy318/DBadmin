@@ -1,21 +1,34 @@
 **HANA SQL Statements**
 
 1. user management
+    
+    1.1 create user
     ```
     ALTER USER USER1 PASSWORD Mpasswd1;
     ALTER USER USER1 DISABLE PASSWORD LIFETIME;
+    ```
+    1.2 unlock user:
+    ```
     ALTER USER USER1 ACTIVATE USER NOW;
     ALTER USER USER1 DEACTIVATE USER NOW;
-
+    ```
+    
+    if user is locked because of too many failed logon attempts, need to reset the attempts and then activate the user if neccessary
+    ```
+    ALTER USER USER1 RESET CONNECT ATTEMPTS;
+    ```
+    1.3 display user attributes  
+    ```
     SELECT  * FROM SYS.USERS WHERE USER_NAME='ADMIN01';
+    ```
+    1.4 list all privileges and roles
+    ```
     SELECT  * FROM SYS.PRIVILEGES  ORDER BY NAME;
     SELECT  * FROM SYS.ROLES ORDER by ROLE_NAME;
-
-    list privileges belong to a user: 
+    ```
+    1.5 list privileges/roles belong to a user: 
+    ```
     SELECT * FROM "PUBLIC"."EFFECTIVE_PRIVILEGES" where USER_NAME = 'ADMIN01';
-
-    List roles assigned to a user:
-
     SELECT * FROM "PUBLIC"."EFFECTIVE_ROLES" where USER_NAME = 'ADMIN01';
     ```
 
