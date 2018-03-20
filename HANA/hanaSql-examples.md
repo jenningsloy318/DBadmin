@@ -68,9 +68,14 @@
     4.2 change the password length
     ```
     ALTER SYSTEM ALTER CONFIGURATION ('indexserver.ini', 'SYSTEM') SET('password policy', 'minimal_password_length') ='7' WITH RECONFIGURE;
-    SELECT KEY, VALUE FROM M_INIFILE_CONTENTS WHERE FILE_NAME = 'indexserver.ini'AND SECTION = 'password policy' AND LAYER_NAME='SYSTEM' ;
-    SELECT KEY, VALUE FROM M_INIFILE_CONTENTS WHERE FILE_NAME = 'indexserver.ini'AND SECTION = 'password policy' AND LAYER_NAME='DEFAULT' ;   
     ```
+    4.3 Retrieve the current setting
+    ```
+    SELECT KEY, VALUE FROM M_INIFILE_CONTENTS WHERE FILE_NAME = 'indexserver.ini' AND SECTION = 'password policy' AND LAYER_NAME='SYSTEM' ;
+    SELECT KEY, VALUE FROM M_INIFILE_CONTENTS WHERE FILE_NAME = 'indexserver.ini' AND SECTION = 'password policy' AND LAYER_NAME='DEFAULT' ;   
+    ```
+
+
 
 5. export and import sql
     ```
