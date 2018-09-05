@@ -111,6 +111,16 @@
     call _SYS_REPO.GRANT_ACTIVATED_ROLE('sap.hana.ide.roles::Developer', 'USER1');
     call _SYS_REPO.REVOKE_ACTIVATED_ROLE('sap.hana.ide.roles::Developer', 'USER1');
     ```
+    > USER SHOUD HAVE `exec` on  OBJECT PRIVILEGE `_SYS.REPO` to excute this sql
+
+    6.5 to grant/revoke **application privileges**
+
+
+
+    ```
+    CALL GRANT_APPLICATION_PRIVILEGE('"sap.sports.imp.appsvc.cockpit::access"','USER1');
+    ```
+    > USER SHOUD HAVE `execute` privilege on  OBJECT PRIVILEGE `GRANT_APPLICATION_PRIVILEGE(_SYS.REPO)` to excute this sql
 7. backup data 
 
     7.1 login as <sid>adm, and create `user store` with hdbuserstore
