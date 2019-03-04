@@ -128,7 +128,7 @@
 
     7.1 login as <sid>adm, and create `user store` with hdbuserstore
     ```
-    /usr/sap/<sid>/HDB<instancenumber>/exe/hdbuserstore SET <key_name> <server>:<port><DB_user_name> <DB_user_password>
+    /usr/sap/<sid>/HDB<instancenumber>/exe/hdbuserstore SET <key_name> <server>:<port> <DB_user_name> <DB_user_password>
     ```
 
     7.3 login as  <sid>adm, make full backup
