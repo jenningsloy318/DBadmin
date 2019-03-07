@@ -144,6 +144,13 @@
     hdbsql -U BACKUPFORSP2 "backup data DIFFERENTIAL using FILE('/backup/<sid>/data/backup_<sid>_$DATE')"
 
     ```
+8. configure E-mail alerts
+    we can use HANA studio to configure the alerts,but also we can set it with following sql
+    ```
+    insert into  "_SYS_STATISTICS"."STATISTICS_EMAILRECIPIENTS" values('-1','reciever@example.com','onchange');
+    insert into  "_SYS_STATISTICS"."STATISTICS_PROPERTIES" values( 'internal.smtp.sender','sender@example.com');
+    insert into  "_SYS_STATISTICS"."STATISTICS_PROPERTIES" values('internal.smtp.server','10.36.52.138');
+    ```
 **Appendix:**
 
 1. Regex
