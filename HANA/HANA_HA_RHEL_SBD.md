@@ -64,7 +64,7 @@
     gpgcheck=1
     gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
     ```
-5. enable softdog  
+5. enable softdog  with root user
     ```
     modprobe softdog
     ```
@@ -81,19 +81,20 @@
     crw------- 1 root root 10, 130 Jan 14 16:55 /dev/watchdog
     ```
 
-6. install HANA (HANA 1.00.122.23.1548298510) on both nodes
+6. install HANA (HANA 1.00.122.23.1548298510) on both nodes with root user
     ```
     /hana/SAP_HANA_DATABASE/hdblcm  --batch --action=install --components=server --sid=P01 --number=00 -password=Toor1234 -sapadm_password=Toor1234 -system_user_password=Toor1234 --sapmnt=/hana/shared --datapath=/hana/data/ --logpath=/hana/log/
     ```
 
-7. enable sapinit at boot
+7. enable sapinit at boot with root user
     ```
     chkconfig sapinit on
     ```
 
     make sure  hana autoboot is disabled, set `Autostart` to `0`
     ```
-    # grep -i  Autostart /usr/sap/P01/SYS/profile/*
+    su - p01adm
+    grep -i  Autostart /usr/sap/P01/SYS/profile/*
     /usr/sap/P01/SYS/profile/P01_HDB00_s1-rhel-prod01.inb.cnsgas.com:Autostart = 0
     ```
 
@@ -101,7 +102,7 @@
     - configure ssh key auth for <sid>adm user, make sure <sid>adm can ssh mutually with sr net
     - ensure hana log mode set to `normal`
     - backup hana db on node1 
-    - modify /hana/shared/P01/global/hdb/custom/config/global.ini, add following lines
+    - with user p01adm, modify /hana/shared/P01/global/hdb/custom/config/global.ini, add following lines
       ```
       [system_replication_communication]
       listeninterface = .global
@@ -124,15 +125,15 @@
     > - if `listeninterface` set to `global`, then `system_replication_hostname_resolution` should only mapping remote site ; if `listeninterface` set to `internal`, `system_replication_hostname_resolution` must mapping both local and remote site
     > - the hostname mapping should use the default hostname, e.g `s1-rhel-prod01.inb.cnsgas.com` but not `srnode1`, since HANA running with the default hostname, this the difference set with `/etc/hosts`
 
-    - enable system replication on node1
+    - enable system replication on node1 with p01adm user
       ```
       hdbnsutil -sr_enable --name=siteA
       ```
 
-    - register standby 
+    - register standby with p01adm user
       ```
-      # HDB stop
-      # hdbnsutil -sr_register --remoteHost=s1-rhel-prod01.inb.cnsgas.com --remoteInstance=00 --replicationMode=sync --name=siteB --operationMode=logreplay
+      HDB stop
+      hdbnsutil -sr_register --remoteHost=s1-rhel-prod01.inb.cnsgas.com --remoteInstance=00 --replicationMode=sync --name=siteB --operationMode=logreplay
 
       adding site ...
       nameserver s1-rhel-prod02.inb.cnsgas.com:30001 not responding.
@@ -141,3 +142,27 @@
       updating local ini files ...
       done.
       ```
+    - start HANA on standby with p01adm
+      ```
+      HDB start
+      ```
+    - check repication status with p01adm user
+      ```
+      $ cdpy 
+      $ python systemReplicationStatus.py
+    | Host                          | Port  | Service Name | Volume ID | Site ID | Site Name | Secondary Host   | Secondary Port  | Secondary  Site ID| Secondary Site Name  | Secondary   Site Name  | Replication Mode | Replication Status | Replication  Details  |
+    | ----------------------------- | ----- | ------------ | --------- | ------- | --------- | ----------------------------- | --------- | --------- | --------- | ------------- | ----------- | ----------- | -------------- |
+    | s1-rhel-prod01.inb.cnsgas.com | 30007 | xsengine     |         3 |       1 | siteA     | s1-rhel-prod02.inb.cnsgas.com |     30007 |         2 | siteB     | YES           | SYNC        | ACTIVE      |                |
+    | s1-rhel-prod01.inb.cnsgas.com | 30001 | nameserver   |         1 |       1 | siteA     | s1-rhel-prod02.inb.cnsgas.com |     30001 |         2 | siteB     | YES           | SYNC        | ACTIVE      |                |
+    | s1-rhel-prod01.inb.cnsgas.com | 30003 | indexserver  |         2 |       1 | siteA     | s1-rhel-prod02.inb.cnsgas.com |     30003 |         2 | siteB     | YES           | SYNC        | ACTIVE      |                |
+
+    status system replication site "2": ACTIVE
+    overall system replication status: ACTIVE
+
+    Local System Replication State
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    mode: PRIMARY
+    site id: 1
+    site name: siteA
+    ```
