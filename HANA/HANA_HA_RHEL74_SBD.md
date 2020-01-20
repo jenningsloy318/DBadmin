@@ -7,8 +7,10 @@
     |sr net| 192.168.12.110|192.168.12.111|
     |habeat net| 192.168.11.110|192.168.11.111|
 
-   OS: rhel 7.4   
-   HANA: 1.00.122.23.1548298510
+   OS: rhel 7.4.eus  
+   HANA: 1.00.122.23.1548298510  
+   SID: P01  
+   InstanceNumber: 00 
 2. modify /etc/hosts on both nodes
 
     ```sh
@@ -80,6 +82,8 @@
     ls -l /dev/watchdog
     crw------- 1 root root 10, 130 Jan 14 16:55 /dev/watchdog
     ```
+    > - as `sbd` on RHEL don't support `softdog`, this may not be used in production environment, refer [Support Policies for RHEL High Availability Clusters - sbd and fence_sbd
+](https://access.redhat.com/articles/2800691)
 
 6. install HANA (HANA 1.00.122.23.1548298510) on both nodes with root user
     - install HANA
@@ -94,11 +98,9 @@
       grant MONITOR ADMIN to rhelhasync;
       ALTER USER rhelhasync DISABLE PASSWORD LIFETIME;
       ```
-      then create hdbstore
+      then create hdbstore with name `SAPHANA${SID}SR` under root user, this will be used for pacemaker `SAPHana` resource 
       ```
       /usr/sap/P01/HDB00/exe/hdbuserstore SET SAPHANAP01SR localhost:30015 rhelhasync Toor1234
-      /usr/sap/P01/HDB00/exe/hdbuserstore SET SAPHANASR localhost:30015 rhelhasync Toor1234
-
       ```
 7. enable sapinit at boot with root user
     ```
@@ -116,7 +118,7 @@
     - configure ssh key auth for <sid>adm user, make sure <sid>adm can ssh mutually with sr net
     - ensure hana log mode set to `normal`
     - backup hana db on node1 
-    - with user p01adm, modify /hana/shared/P01/global/hdb/custom/config/global.ini, add following lines
+    - with user p01adm, modify /hana/shared/P01/global/hdb/custom/config/global.ini, add following lines(this step is used to configure the hostname mapping for replication, here we can set dedicated IP address for repication)
       ```
       [system_replication_communication]
       listeninterface = .global
@@ -183,7 +185,7 @@
       site name: siteA
       ```
   
-  9. install HA packages
+  9. install HA packages on both nodes
       ```
       # yum install -y pacemaker corosync resource-agents-sap-hana pcs fence-agents-all
       ```
@@ -208,7 +210,8 @@
     ```
 13. initialize cluster on node1, and set the cluster communication mode to unicast 
     ```
-    # pcs cluster setup --name hacluster --start s1-rhel-prod01.inb.cnsgas.com,habeat01 Destroying cluster on nodes: s1-rhel-prod01.inb.cnsgas.com, s1-rhel-prod02.inb.cnsgas.com...
+    # pcs cluster setup --name hacluster --start s1-rhel-prod01.inb.cnsgas.com,habeat01 s1-rhel-prod02.inb.cnsgas.com,habeat02  --enable
+    Destroying cluster on nodes: s1-rhel-prod01.inb.cnsgas.com, s1-rhel-prod02.inb.cnsgas.com...
     s1-rhel-prod01.inb.cnsgas.com: Stopping Cluster (pacemaker)...
     s1-rhel-prod02.inb.cnsgas.com: Stopping Cluster (pacemaker)...
     s1-rhel-prod01.inb.cnsgas.com: Successfully destroyed cluster
@@ -233,13 +236,83 @@
     s1-rhel-prod01.inb.cnsgas.com: Success
     ```
 
-14. enable services on all nodes
+14. modify corosync quorum and then enable services on all nodes
+    - open /etc/corosync/corosync.conf,  modify `quorum` block with following contents
+      ```
+          quorum {
+            provider: corosync_votequorum
+            expected_votes: 2
 
-    ```
-    # pcs cluster enable --all
-    s1-rhel-prod01.inb.cnsgas.com: Starting Cluster...
-    s1-rhel-prod02.inb.cnsgas.com: Starting Cluster...
-    ```
+            #Enables two node cluster operations
+            two_node:       1
+
+      }
+      ```
+
+    - enable all services 
+      ```
+      # pcs cluster enable --all
+      s1-rhel-prod01.inb.cnsgas.com: Starting Cluster...
+      s1-rhel-prod02.inb.cnsgas.com: Starting Cluster...
+      ```
+
+    - restart cluster 
+      ```
+      # pcs cluster stop --all && pcs cluster start --all
+      ```
+
+    - check quorum setting
+      ```
+      # corosync-quorumtool
+      Quorum information
+      ------------------
+      Date:             Mon Jan 20 10:02:12 2020
+      Quorum provider:  corosync_votequorum
+      Nodes:            2
+      Node ID:          1
+      Ring ID:          1/216
+      Quorate:          Yes
+
+      Votequorum information
+      ----------------------
+      Expected votes:   2
+      Highest expected: 2
+      Total votes:      2
+      Quorum:           1
+      Flags:            2Node Quorate WaitForAll
+
+      Membership information
+      ----------------------
+          Nodeid      Votes Name
+              1          1 s1-rhel-prod01.inb.cnsgas.com (local)
+              2          1 s1-rhel-prod02.inb.cnsgas.com
+      ```
+    - check the heartbeat status.
+      - node1 
+        ```
+            # corosync-cfgtool -s
+            Printing ring status.
+            Local node ID 1
+            RING ID 0
+                    id      = 192.168.11.110
+                    status  = ring 0 active with no faults
+            RING ID 1
+                    id      = 10.36.50.110
+                    status  = ring 1 active with no faults
+        ```
+          
+      - node 2
+        ```
+        # corosync-cfgtool -s
+        Printing ring status.
+        Local node ID 1
+        RING ID 0
+                id      = 10.36.50.110
+                status  = ring 0 active with no faults
+        RING ID 1
+                id      = 192.168.11.110
+                status  = ring 1 active with no faults
+        ```
 15. check cluster status 
     
     ```
@@ -263,37 +336,11 @@
       corosync: active/enabled
       pacemaker: active/enabled
       pcsd: active/enabled
+    ```    
+   
+16. configure cluster resources parameters
     ```
-16. On the node 1, run the corosync-cfgtool -s command to check the heartbeat status.
-    
-    ```
-    # corosync-cfgtool -s
-    Printing ring status.
-    Local node ID 1
-    RING ID 0
-            id      = 192.168.11.110
-            status  = ring 0 active with no faults
-    RING ID 1
-            id      = 10.36.50.110
-            status  = ring 1 active with no faults
-    ```
-    
-    on node 2
-
-    ```
-    # corosync-cfgtool -s
-    Printing ring status.
-    Local node ID 1
-    RING ID 0
-            id      = 10.36.50.110
-            status  = ring 0 active with no faults
-    RING ID 1
-            id      = 192.168.11.110
-            status  = ring 1 active with no faults
-    ```
-17. configure cluster resources parameters on node1
-    ```
-    # pcs property set no-quorum-policy="stop"
+    # pcs property set no-quorum-policy="ignore"
     # pcs resource defaults default-resource-stickness=1000
     # pcs resource defaults default-migration-threshold=5000
     # pcs resource op defaults timeout=600s
@@ -305,7 +352,7 @@
     #  pcs property set stonith-timeout=150s
     ```
 
-18. configure the stonith resource instance on both nodes
+17. configure the stonith resource instance on both nodes
   - install iscsi-initiator-utils 
     ```
     # yum install -y iscsi-initiator-utils sbd
@@ -414,13 +461,17 @@
       pcsd: active/enabled
       sbd: active/enabled
     ```
-19. configure virtual IP address resource
+    >-  the type of the stonith is `fence_sbd`, and on Suse it is `external/sbd` both of them are same type of fence of `sbd poison-pill fencing`, refer 
+
+    >- if running in VMWare vCenter environment, we can use fence_vmware_soap for fence, refer  https://access.redhat.com/solutions/917813
+    > 
+18. configure virtual IP address resource
     - create ip on master node
     ```
     # pcs resource create vip_SAPHana_P01_HDB00 IPaddr2  ip="10.36.50.112"  cidr_netmask=25 nic=ens192  op start timeout=20 interval=0  op stop timeout=20 interval=0 op monitor interval=10 timeout=20
     Assumed agent name 'ocf:heartbeat:IPaddr2' (deduced from 'IPaddr2')
     ```
-21. Create SAPHanaTopology resource
+19. Create SAPHanaTopology resource
     ```
     # pcs resource create SAPHanaTopology_P01_HDB00 SAPHanaTopology SID=P01 InstanceNumber=00 op start timeout=600 op stop timeout=300 op monitor interval=10 timeout=600 --clone meta is-managed=true clone-node-max=1 target-role="Started" interleave=true
 
@@ -428,7 +479,7 @@
     Assumed agent name 'ocf:heartbeat:SAPHanaTopology' (deduced from 'SAPHanaTopology')
     ```
 
-22. create hana resource 
+20. create hana resource 
     ```
     # pcs resource create SAPHana_P01_HDB00 SAPHana  SID=P01  InstanceNumber=00  PREFER_SITE_TAKEOVER=true  DUPLICATE_PRIMARY_TIMEOUT=7200  AUTOMATED_REGISTER=true  op start timeout=3600  op stop timeout=3600  op promote timeout=3600  op demote timeout=3600  op monitor interval=60 role="Master" timeout=700  op monitor interval=61 role="Slave" timeout=700
 
@@ -437,13 +488,13 @@
     # pcs resource master SAPHana_P01_HDB00-master SAPHana_P01_HDB00  meta is-managed=true notify=true clone-max=2 clone-node-max=1  target-role="Started" interleave=true
     ```
 
-22. configure constraint
+21. configure constraint
 - constraint - start SAPHanaTopology before SAPHana
   ```
   # pcs constraint order SAPHanaTopology_P01_HDB00-clone then SAPHana_P01_HDB00-master  symmetrical=false
   Adding SAPHanaTopology_P01_HDB00-clone SAPHana_P01_HDB00-master (kind: Mandatory) (Options: first-action=start then-action=start symmetrical=false)
   ```
-- constraint - colocate vip_SAPHana_P01_HDB00 and SAPHana_P01_HDB00-master
+- constraint - colocate vip_SAPHana_P01_HDB00 and SAPHana_P01_HDB00-master, make VIP and HANA instance co-exist.
 ```
 pcs constraint colocation add vip_SAPHana_P01_HDB00 with master SAPHana_P01_HDB00-master 2000
 ```
@@ -458,7 +509,7 @@ pcs constraint colocation add vip_SAPHana_P01_HDB00 with master SAPHana_P01_HDB0
     vip_SAPHana_P01_HDB00 with SAPHana_P01_HDB00-master (score:2000) (rsc-role:Started) (with-rsc-role:Master)
   Ticket Constraints:
   ```
-23. obtain the latest resource status.
+22. obtain the latest resource status.
     ```
     # pcs resource cleanup
     # pcs status
@@ -478,8 +529,6 @@ pcs constraint colocation add vip_SAPHana_P01_HDB00 with master SAPHana_P01_HDB0
     stonith-sbd    (stonith:fence_sbd):    Started s1-rhel-prod01.inb.cnsgas.com
     vip_SAPHana_P01_HDB00  (ocf::heartbeat:IPaddr2):       Started s1-rhel-prod01.inb.cnsgas.com
     Clone Set: SAPHanaTopology_P01_HDB00-clone [SAPHanaTopology_P01_HDB00]
-        Started: [ s1-rhel-prod01.inb.cnsgas.com s1-rhel-prod02.inb.cnsgas.com ]
-    Clone Set: ethmonitor-ens192-clone [ethmonitor-ens192]
         Started: [ s1-rhel-prod01.inb.cnsgas.com s1-rhel-prod02.inb.cnsgas.com ]
     Master/Slave Set: SAPHana_P01_HDB00-master [SAPHana_P01_HDB00]
         Masters: [ s1-rhel-prod01.inb.cnsgas.com ]
