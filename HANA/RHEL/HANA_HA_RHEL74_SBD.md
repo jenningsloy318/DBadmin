@@ -401,6 +401,8 @@
     ==Header on disk /dev/disk/by-id/scsi-3600a09803831374a552b4e616c353075 is dumped
     ```
   - allocate slots on both nodes for sbd device 
+     
+     **This Step is mandatory, without allocating the slots, nothing will display when executing `sbd -d /dev/disk/by-id/scsi-3600a09803831374a552b4e616c353075 list`**
     ```
     # sbd -d /dev/disk/by-id/scsi-3600a09803831374a552b4e616c353075 allocate s1-rhel-prod01.inb.cnsgas.com
     Trying to allocate slot for s1-rhel-prod01.inb.cnsgas.com on device /dev/disk/by-id/scsi-3600a09803831374a552b4e616c353075.
