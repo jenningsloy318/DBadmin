@@ -384,8 +384,9 @@
     ```
   - create sbd device with iscsi disk
     ```
-    # sbd -d    /dev/disk/by-id/scsi-3600a09803831374a552b4e616c353075 create 
+    # sbd -d /dev/disk/by-id/scsi-3600a09803831374a552b4e616c353075  -2 5 create
     ```
+    >`-2 <N>`: Set slot allocation timeout to N seconds (optional, create only), here set to 5 seconds to wait for slot allocation
   - dump sbd info
     ```
     # sbd -d /dev/disk/by-id/scsi-3600a09803831374a552b4e616c353075 dump
@@ -399,20 +400,6 @@
     Timeout (loop)     : 1
     Timeout (msgwait)  : 10
     ==Header on disk /dev/disk/by-id/scsi-3600a09803831374a552b4e616c353075 is dumped
-    ```
-  - allocate slots on both nodes for sbd device 
-     
-     **This Step is mandatory, without allocating the slots, nothing will display when executing `sbd -d /dev/disk/by-id/scsi-3600a09803831374a552b4e616c353075 list`**
-    ```
-    # sbd -d /dev/disk/by-id/scsi-3600a09803831374a552b4e616c353075 allocate s1-rhel-prod01.inb.cnsgas.com
-    Trying to allocate slot for s1-rhel-prod01.inb.cnsgas.com on device /dev/disk/by-id/scsi-3600a09803831374a552b4e616c353075.
-    slot 0 is unused - trying to own
-    Slot for s1-rhel-prod01.inb.cnsgas.com has been allocated on /dev/disk/by-id/scsi-3600a09803831374a552b4e616c353075.
-
-    # sbd -d /dev/disk/by-id/scsi-3600a09803831374a552b4e616c353075 allocate s1-rhel-prod02.inb.cnsgas.com
-    Trying to allocate slot for s1-rhel-prod02.inb.cnsgas.com on device /dev/disk/by-id/scsi-3600a09803831374a552b4e616c353075.
-    slot 1 is unused - trying to own
-    Slot for s1-rhel-prod02.inb.cnsgas.com has been allocated on /dev/disk/by-id/scsi-3600a09803831374a552b4e616c353075.
     ```
   - show sbd info 
     ```
