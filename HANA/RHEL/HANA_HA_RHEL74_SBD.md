@@ -434,7 +434,7 @@
   - create stonith device 
     ```
     # pcs cluster stop --all
-    # pcs stonith create stonith-sbd fence_sbd devices=/dev/disk/by-id/scsi-3600a09803831374a552b4e616c353075 pcmk_monitor_timeout=20s  op monitor interval=15 timeout=20
+    # pcs stonith create stonith-sbd fence_sbd devices=/dev/disk/by-id/scsi-3600a09803831374a552b4e616c353075 pcmk_delay_max=20  op monitor interval=15 timeout=20
     # pcs stonith sbd  enable 
     # pcs cluster start --all
     ```
