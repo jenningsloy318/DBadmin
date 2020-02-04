@@ -11,6 +11,8 @@
    HANA: 1.00.122.23.1548298510  
    SID: P01  
    InstanceNumber: 00 
+
+   > - the whole setup are running in a virtual environment on vmware vsphere.
 2. modify /etc/hosts on both nodes
 
     ```sh
