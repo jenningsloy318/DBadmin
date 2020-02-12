@@ -482,8 +482,8 @@
 21. configure constraint
 - constraint - start SAPHanaTopology before SAPHana
   ```
-  # pcs constraint order SAPHanaTopology_P01_HDB00-clone then SAPHana_P01_HDB00-master  symmetrical=false
-  Adding SAPHanaTopology_P01_HDB00-clone SAPHana_P01_HDB00-master (kind: Mandatory) (Options: first-action=start then-action=start symmetrical=false)
+  # pcs constraint order SAPHanaTopology_P01_HDB00-clone then SAPHana_P01_HDB00-master  kind=Optional symmetrical=false
+  Adding SAPHanaTopology_P01_HDB00-clone SAPHana_P01_HDB00-master (kind: Optional) (Options: first-action=start then-action=start symmetrical=false)
   ```
 - constraint - colocate vip_SAPHana_P01_HDB00 and SAPHana_P01_HDB00-master, make VIP and HANA instance co-exist.
 ```
