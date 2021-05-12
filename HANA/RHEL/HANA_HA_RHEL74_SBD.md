@@ -212,7 +212,7 @@
     ```
 13. initialize cluster on node1, and set the cluster communication mode to unicast 
     ```
-    # pcs cluster setup --name hacluster --start s1-rhel-prod01.inb.cnsgas.com,habeat01 s1-rhel-prod02.inb.cnsgas.com,habeat02  --enable
+    # pcs cluster setup --name hacluster --start s1-rhel-prod01.inb.cnsgas.com s1-rhel-prod02.inb.cnsgas.com  --enable
     Destroying cluster on nodes: s1-rhel-prod01.inb.cnsgas.com, s1-rhel-prod02.inb.cnsgas.com...
     s1-rhel-prod01.inb.cnsgas.com: Stopping Cluster (pacemaker)...
     s1-rhel-prod02.inb.cnsgas.com: Stopping Cluster (pacemaker)...
@@ -420,6 +420,8 @@
     SBD_WATCHDOG_DEV=/dev/watchdog
     SBD_WATCHDOG_TIMEOUT=5
     ```
+
+    >- SBD_STARTMODE: always or clean; clean means it only allows sbd to start when it was not previously fenced.
   - create stonith device 
     ```
     # pcs cluster stop --all
