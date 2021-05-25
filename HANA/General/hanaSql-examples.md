@@ -77,6 +77,11 @@
     SELECT FILE_NAME,SECTION,KEY, VALUE FROM M_INIFILE_CONTENTS WHERE LAYER_NAME='SYSTEM' ;
 
     ```
+    4.4 configure S1 root_page and background image
+    ```
+    ALTER SYSTEM ALTER CONFIGURATION ('xsengine.ini', 'SYSTEM') SET('httpserver', 'login_screen_background_image') ='/sap/sports/custom/img/SportsOne_Portal_Login.jpg' WITH RECONFIGURE;
+    ALTER SYSTEM ALTER CONFIGURATION ('xsengine.ini', 'SYSTEM') SET('httpserver', 'root_page') ='/sap/sports/fnd/ui/start/index.html' WITH RECONFIGURE;
+    ```
 
 
 
